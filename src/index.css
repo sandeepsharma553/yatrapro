@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --cream:    #F7F3ED;
+  --sand:     #E8DDD0;
+  --terracotta: #C4623A;
+  --terra-dark: #9E4A27;
+  --terra-light: #E8835E;
+  --charcoal:  #2C2420;
+  --stone:     #7A6E68;
+  --white:     #FDFAF6;
+  --success:   #2D7A4F;
+  --danger:    #C43A3A;
+  --shadow:    0 4px 24px rgba(44,36,32,0.10);
+  --radius:    14px;
+  --radius-sm: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--charcoal);
+  min-height: 100vh;
+}
+
+h1, h2, h3 {
+  font-family: 'Playfair Display', serif;
+}
+
+a { text-decoration: none; color: inherit; }
+
+button {
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+
+input, select, textarea {
+  font-family: 'DM Sans', sans-serif;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.btn-primary {
+  background: var(--terracotta);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: background 0.2s, transform 0.1s;
+}
+.btn-primary:hover  { background: var(--terra-dark); }
+.btn-primary:active { transform: scale(0.98); }
+
+.btn-outline {
+  background: transparent;
+  color: var(--terracotta);
+  border: 1.5px solid var(--terracotta);
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-outline:hover {
+  background: var(--terracotta);
+  color: white;
+}
+
+.card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.badge-terra  { background: #FDE8DF; color: var(--terra-dark); }
+.badge-green  { background: #DFF0E8; color: var(--success); }
+.badge-stone  { background: var(--sand); color: var(--stone); }
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--sand);
+  color: var(--stone);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.page-pt { padding-top: 80px; }
+
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--sand);
+  border-top-color: var(--terracotta);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 60px auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
