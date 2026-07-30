@@ -29,9 +29,11 @@ export default function BookingConfirm() {
           <div className="confirm-row"><span>Duration</span><strong>{booking.tour?.totalDays} days</strong></div>
           <div className="confirm-row"><span>Seats</span><strong>{booking.selectedSeats?.join(', ')}</strong></div>
           <div className="confirm-row"><span>Passengers</span><strong>{booking.passengers?.length}</strong></div>
-          <div className="confirm-row"><span>Total Paid</span><strong style={{ color:'#C4623A' }}>₹{booking.pricing?.totalAmount?.toLocaleString('en-IN')}</strong></div>
+          <div className="confirm-row"><span>Total Amount</span><strong style={{ color:'#C4623A' }}>₹{booking.pricing?.totalAmount?.toLocaleString('en-IN')}</strong></div>
+          <div className="confirm-row"><span>Payment</span><strong>💵 Travel ke time (Pay Later)</strong></div>
         </div>
         <div className="confirm-actions">
+          <button onClick={() => window.print()} className="confirm-print-btn">🖨️ Print Ticket</button>
           <Link to="/my-bookings" className="confirm-view-btn">View My Bookings</Link>
           <Link to="/"            className="confirm-home-btn">Go to Home</Link>
         </div>

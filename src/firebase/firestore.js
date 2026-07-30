@@ -1,7 +1,7 @@
 import {
   collection, doc, getDoc, getDocs,
-  addDoc, updateDoc, query, where,
-  orderBy, serverTimestamp, arrayUnion, increment
+  addDoc, updateDoc, deleteDoc, query, where,
+  orderBy, serverTimestamp, arrayUnion, arrayRemove, increment
 } from 'firebase/firestore'
 import { db } from './config'
 
@@ -50,9 +50,20 @@ export const createBooking = async (bookingData) => {
 }
 
 export const getUserBookings = async (userId) => {
-  const q    = query(collection(db, 'bookings'), where('userId', '==', userId), orderBy('createdAt', 'desc'))
+  // orderBy + where saath mein composite index maangta hai — client-side sort karo
+  const q    = query(collection(db, 'bookings'), where('userId', '==', userId))
   const snap = await getDocs(q)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  const bookings = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return bookings.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+}
+
+// Abhi payment skip — booking directly confirm karo (pay later)
+export const confirmBookingWithoutPayment = async (bookingId) => {
+  await updateDoc(doc(db, 'bookings', bookingId), {
+    status: 'confirmed',
+    'payment.status': 'pay-later',
+    'payment.confirmedAt': serverTimestamp(),
+  })
 }
 
 export const updateBookingPayment = async (bookingId, paymentData) => {
@@ -64,6 +75,20 @@ export const updateBookingPayment = async (bookingId, paymentData) => {
     'payment.paidAt':      serverTimestamp(),
     status: 'confirmed',
   })
+}
+
+// Booking cancel karo — seats wapas free karo
+export const cancelBooking = async (booking) => {
+  await updateDoc(doc(db, 'bookings', booking.id), {
+    status: 'cancelled',
+    cancelledAt: serverTimestamp(),
+  })
+  if (booking.tourId && booking.selectedSeats?.length) {
+    await updateDoc(doc(db, 'tours', booking.tourId), {
+      bookedSeats:    arrayRemove(...booking.selectedSeats),
+      availableSeats: increment(booking.selectedSeats.length),
+    })
+  }
 }
 
 // ── BUSES ────────────────────────────────────────────────
@@ -86,6 +111,28 @@ export const createTour = async (tourData) => {
   return ref.id
 }
 
+export const updateTour = async (tourId, tourData) => {
+  await updateDoc(doc(db, 'tours', tourId), {
+    ...tourData,
+    updatedAt: serverTimestamp(),
+  })
+}
+
+export const toggleTourActive = async (tourId, isActive) => {
+  await updateDoc(doc(db, 'tours', tourId), { isActive })
+}
+
+export const deleteTour = async (tourId) => {
+  await deleteDoc(doc(db, 'tours', tourId))
+}
+
+// Admin ke liye saare tours (inactive bhi)
+export const getAllToursAdmin = async () => {
+  const snap = await getDocs(collection(db, 'tours'))
+  const tours = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return tours.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+}
+
 export const createBus = async (busData) => {
   const ref = await addDoc(collection(db, 'buses'), {
     ...busData,
@@ -98,4 +145,19 @@ export const createBus = async (busData) => {
 export const getAllBookings = async () => {
   const snap = await getDocs(query(collection(db, 'bookings'), orderBy('createdAt', 'desc')))
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+}
+
+// Admin booking ka status badal sake (confirm / cancel)
+export const updateBookingStatus = async (bookingId, status) => {
+  await updateDoc(doc(db, 'bookings', bookingId), {
+    status,
+    updatedAt: serverTimestamp(),
+  })
+}
+
+// Saare customers ki list (admin ke liye)
+export const getAllUsers = async () => {
+  const snap = await getDocs(collection(db, 'users'))
+  const users = snap.docs.map(d => ({ uid: d.id, ...d.data() }))
+  return users.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
 }

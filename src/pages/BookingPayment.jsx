@@ -1,16 +1,25 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createBooking, updateBookingPayment } from '../firebase/firestore'
+import { createBooking, confirmBookingWithoutPayment } from '../firebase/firestore'
 import { useAuth } from '../context/AuthContext'
 
+// NOTE: Abhi payment gateway skip hai — booking directly confirm hoti hai.
+// Razorpay integration baad mein add hoga.
 export default function BookingPayment() {
   const navigate  = useNavigate()
-  const { user }  = useAuth()
+  const { user, profile }  = useAuth()
   const draft     = JSON.parse(sessionStorage.getItem('bookingDraft') || '{}')
   const [loading, setLoading] = useState(false)
-  const [contact, setContact] = useState({ name:'', email: user?.email||'', phone:'' })
+  const [contact, setContact] = useState({
+    name: profile?.name || '', email: user?.email || '', phone: profile?.phone || ''
+  })
 
-  const handlePay = async () => {
+  // Draft khali hai to wapas bhejo
+  useEffect(() => {
+    if (!draft.tourId) navigate('/')
+  }, [])
+
+  const handleConfirm = async () => {
     if (!contact.name || !contact.email || !contact.phone)
       return alert('Please fill in all contact details')
     setLoading(true)
@@ -20,30 +29,9 @@ export default function BookingPayment() {
         tourTitle: draft.tour?.title, origin: draft.tour?.origin,
         destination: draft.tour?.destination, contact,
       })
-      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID
-      if (razorpayKey && razorpayKey !== 'rzp_test_xxxxxxxx' && window.Razorpay) {
-        const options = {
-          key: razorpayKey,
-          amount: (draft.pricing?.totalAmount || 0) * 100,
-          currency: 'INR', name: 'YatraPro',
-          description: draft.tour?.title,
-          handler: async (response) => {
-            await updateBookingPayment(bookingId, response)
-            sessionStorage.setItem('bookingConfirmed', JSON.stringify({ ...draft, contact, bookingId }))
-            navigate('/booking/confirm')
-          },
-          prefill: { name: contact.name, email: contact.email, contact: contact.phone },
-          theme: { color: '#C4623A' }
-        }
-        new window.Razorpay(options).open()
-      } else {
-        // Demo mode
-        await updateBookingPayment(bookingId, {
-          razorpay_order_id: 'DEMO', razorpay_payment_id: 'DEMO_' + Date.now(), razorpay_signature: 'DEMO'
-        })
-        sessionStorage.setItem('bookingConfirmed', JSON.stringify({ ...draft, contact, bookingId }))
-        navigate('/booking/confirm')
-      }
+      await confirmBookingWithoutPayment(bookingId)
+      sessionStorage.setItem('bookingConfirmed', JSON.stringify({ ...draft, contact, bookingId }))
+      navigate('/booking/confirm')
     } catch (err) {
       alert('Booking failed: ' + err.message)
     } finally { setLoading(false) }
@@ -53,9 +41,8 @@ export default function BookingPayment() {
 
   return (
     <div className="page-pt pb-80">
-      <script src="https://checkout.razorpay.com/v1/checkout.js" />
       <div className="container">
-        <h1 className="page-title">Payment 💳</h1>
+        <h1 className="page-title">Confirm Booking ✓</h1>
         <div className="payment-layout">
           <div>
             <div className="payment-card">
@@ -88,10 +75,10 @@ export default function BookingPayment() {
               <div className="bill-row"><span>GST (5%)</span><span>₹{pricing?.taxes?.toLocaleString('en-IN')}</span></div>
               <div className="bill-row bill-total"><span>Total</span><span>₹{pricing?.totalAmount?.toLocaleString('en-IN')}</span></div>
             </div>
-            <button className="pay-btn" onClick={handlePay} disabled={loading}>
-              {loading ? 'Processing...' : `Pay ₹${pricing?.totalAmount?.toLocaleString('en-IN')}`}
+            <button className="pay-btn" onClick={handleConfirm} disabled={loading}>
+              {loading ? 'Confirming...' : 'Confirm Booking ✓'}
             </button>
-            <p className="secure-payment-note">🔒 Razorpay secure · UPI, Card, NetBanking</p>
+            <p className="secure-payment-note">💵 Payment travel ke time — abhi koi payment nahi</p>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getTours } from '../firebase/firestore'
+import TourCard from '../components/TourCard'
 
 const WHY = [
   { icon: '🛋️', title: 'Comfortable Buses',  desc: 'Travel in sleeper, semi-sleeper and luxury buses' },
@@ -9,13 +10,26 @@ const WHY = [
   { icon: '📱', title: 'Instant Ticket',      desc: 'Get your ticket on email right after booking' },
 ]
 
+const STATS = [
+  { num: '10,000+', label: 'Happy Travellers' },
+  { num: '150+',    label: 'Tours Completed' },
+  { num: '4.8 ★',   label: 'Average Rating' },
+  { num: '25+',     label: 'Destinations' },
+]
+
+const TESTIMONIALS = [
+  { name: 'Priya Sharma',  place: 'Delhi',    text: 'Manali trip was amazing! Bus was super comfortable and the food was delicious. Booking took just 2 minutes.', avatar: '👩' },
+  { name: 'Rahul Verma',   place: 'Amritsar', text: 'Best group tour experience. Everything was well organized — hotel, meals, guide. Paisa vasool!', avatar: '👨' },
+  { name: 'Anjali Gupta',  place: 'Jaipur',   text: 'Char Dham yatra with my parents went so smoothly. The team took care of everything. Highly recommended!', avatar: '👩‍🦰' },
+]
+
 export default function Home() {
   const navigate = useNavigate()
   const [form, setForm]         = useState({ origin: '', destination: '', date: '' })
   const [popularTours, setPopularTours] = useState([])
 
   useEffect(() => {
-    getTours().then(data => setPopularTours(data.slice(0, 4))).catch(() => {})
+    getTours().then(data => setPopularTours(data.slice(0, 6))).catch(() => {})
   }, [])
 
   const handleSearch = (e) => {
@@ -54,6 +68,14 @@ export default function Home() {
               <button type="submit" className="search-btn">Search Tours</button>
             </div>
           </form>
+          <div className="hero-stats">
+            {STATS.map(s => (
+              <div key={s.label} className="hero-stat">
+                <div className="hero-stat-num">{s.num}</div>
+                <div className="hero-stat-label">{s.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -62,19 +84,12 @@ export default function Home() {
         <section className="home-section">
           <div className="container">
             <h2 className="section-title">Popular Tours</h2>
-            <p className="section-sub">Explore our available destinations</p>
-            <div className="routes-grid">
-              {popularTours.map(tour => (
-                <button key={tour.id} className="route-card"
-                  onClick={() => navigate(`/search?origin=${tour.origin}&destination=${tour.destination}`)}>
-                  <span className="route-emoji">🏔️</span>
-                  <div className="route-info">
-                    <div className="route-title">{tour.origin} → {tour.destination}</div>
-                    <div className="route-days">{tour.totalDays} days · ₹{tour.pricePerPerson?.toLocaleString('en-IN')}/person</div>
-                  </div>
-                  <span className="route-arrow">›</span>
-                </button>
-              ))}
+            <p className="section-sub">Explore our available destinations — click to book</p>
+            <div className="tours-grid">
+              {popularTours.map(tour => <TourCard key={tour.id} tour={tour} />)}
+            </div>
+            <div className="home-view-all">
+              <button className="btn-outline" onClick={() => navigate('/search')}>View All Tours →</button>
             </div>
           </div>
         </section>
@@ -90,6 +105,29 @@ export default function Home() {
                 <span className="why-icon">{w.icon}</span>
                 <h3 className="why-title">{w.title}</h3>
                 <p className="why-desc">{w.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="home-section">
+        <div className="container">
+          <h2 className="section-title">What Travellers Say</h2>
+          <p className="section-sub">Real experiences from our happy customers</p>
+          <div className="testimonials-grid">
+            {TESTIMONIALS.map(t => (
+              <div key={t.name} className="testimonial-card">
+                <div className="testimonial-stars">★★★★★</div>
+                <p className="testimonial-text">"{t.text}"</p>
+                <div className="testimonial-author">
+                  <span className="testimonial-avatar">{t.avatar}</span>
+                  <div>
+                    <div className="testimonial-name">{t.name}</div>
+                    <div className="testimonial-place">{t.place}</div>
+                  </div>
+                </div>
               </div>
             ))}
           </div>

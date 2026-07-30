@@ -73,7 +73,8 @@ export default function TourDetail() {
   return (
     <div className="page-pt pb-80">
       {/* Hero */}
-      <div className="detail-hero">
+      <div className={`detail-hero ${tour.imageUrl ? 'has-image' : ''}`}
+        style={tour.imageUrl ? { backgroundImage: `linear-gradient(rgba(44,36,32,0.72), rgba(44,36,32,0.72)), url(${tour.imageUrl})` } : undefined}>
         <div className="container">
           <p className="detail-breadcrumb" onClick={() => navigate(-1)}>← Go Back</p>
           <h1 className="detail-title">{tour.title}</h1>
@@ -100,6 +101,9 @@ export default function TourDetail() {
 
             {tab === 'info' && (
               <div className="detail-tab-content">
+                {tour.description && (
+                  <p className="tour-description">{tour.description}</p>
+                )}
                 <div className="info-grid">
                   {tour.bus?.amenities?.length > 0 && (
                     <div className="info-box">

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams, useNavigate, Link } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { getTours } from '../firebase/firestore'
+import TourCard from '../components/TourCard'
 
 const BUS_TYPES = ['All', 'sleeper', 'semi-sleeper', 'seater', 'tempo-traveller', 'luxury']
 
@@ -32,8 +33,6 @@ export default function SearchResults() {
       if (sortBy === 'days')       return a.totalDays - b.totalDays
       return 0
     })
-
-  const typeLabels = { sleeper:'🛏️ Sleeper','semi-sleeper':'💺 Semi-Sleeper',seater:'💺 Seater','tempo-traveller':'🚐 Tempo',luxury:'✨ Luxury' }
 
   return (
     <div className="page-pt pb-80">
@@ -75,37 +74,7 @@ export default function SearchResults() {
           </div>
         ) : (
           <div className="tours-grid">
-            {filtered.map(tour => {
-              const busType = tour.bus?.type || tour.busType
-              return (
-                <Link key={tour.id} to={`/tours/${tour.id}`} className="tour-card">
-                  <div className="tour-card-img">
-                    <div className="tour-card-img-placeholder">🏔️</div>
-                    <span className="tour-card-badge">{typeLabels[busType] || busType}</span>
-                  </div>
-                  <div className="tour-card-body">
-                    <h3 className="tour-card-title">{tour.title}</h3>
-                    <p className="tour-card-route">📍 {tour.origin} → {tour.destination}</p>
-                    <div className="tour-card-meta">
-                      <span>📅 {tour.totalDays} days</span>
-                      <span>💺 {tour.availableSeats} seats left</span>
-                    </div>
-                    {tour.bus?.amenities?.length > 0 && (
-                      <div className="tour-card-tags">
-                        {tour.bus.amenities.slice(0,3).map(a => <span key={a} className="tag">{a}</span>)}
-                      </div>
-                    )}
-                    <div className="tour-card-footer">
-                      <div>
-                        <span className="tour-price-num">₹{tour.pricePerPerson?.toLocaleString('en-IN')}</span>
-                        <span className="tour-price-label">/person</span>
-                      </div>
-                      <span className="tour-book-btn">Book Now →</span>
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
+            {filtered.map(tour => <TourCard key={tour.id} tour={tour} />)}
           </div>
         )}
       </div>
